@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using AwesomeAssertions;
 using Soenneker.Extensions.DateTimeOffsets.Hours;
 using Soenneker.Tests.Unit;
 
@@ -9,6 +10,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
 {
     private static readonly TimeZoneInfo Eastern = TimeZoneInfo.FindSystemTimeZoneById(
         OperatingSystem.IsWindows() ? "Eastern Standard Time" : "America/New_York");
+    private static readonly TimeSpan ZeroOffset = TimeSpan.Zero;
 
     #region ToStartOfHour
 
@@ -17,7 +19,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, 123, TimeSpan.FromHours(-4));
         var start = dto.ToStartOfHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, dto.Offset), start);
+        start.Should().Be(new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, dto.Offset));
     }
 
     [Test]
@@ -25,7 +27,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero);
         var start = dto.ToStartOfHour();
-        Assert.Equal(dto, start);
+        start.Should().Be(dto);
     }
 
     [Test]
@@ -33,7 +35,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 59, 59, 999, TimeSpan.Zero).AddTicks(9999);
         var start = dto.ToStartOfHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero), start);
+        start.Should().Be(new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, ZeroOffset));
     }
 
     #endregion
@@ -45,7 +47,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var next = dto.ToStartOfNextHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 15, 15, 0, 0, 0, TimeSpan.Zero), next);
+        next.Should().Be(new DateTimeOffset(2024, 6, 15, 15, 0, 0, 0, ZeroOffset));
     }
 
     [Test]
@@ -53,7 +55,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, 0, TimeSpan.Zero);
         var next = dto.ToStartOfNextHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 15, 1, 0, 0, 0, TimeSpan.Zero), next);
+        next.Should().Be(new DateTimeOffset(2024, 6, 15, 1, 0, 0, 0, ZeroOffset));
     }
 
     [Test]
@@ -61,7 +63,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 23, 59, 59, 999, TimeSpan.Zero).AddTicks(9999);
         var next = dto.ToStartOfNextHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 16, 0, 0, 0, 0, TimeSpan.Zero), next);
+        next.Should().Be(new DateTimeOffset(2024, 6, 16, 0, 0, 0, 0, ZeroOffset));
     }
 
     [Test]
@@ -69,7 +71,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var prev = dto.ToStartOfPreviousHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 15, 13, 0, 0, 0, TimeSpan.Zero), prev);
+        prev.Should().Be(new DateTimeOffset(2024, 6, 15, 13, 0, 0, 0, ZeroOffset));
     }
 
     [Test]
@@ -77,7 +79,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, 0, TimeSpan.Zero);
         var prev = dto.ToStartOfPreviousHour();
-        Assert.Equal(new DateTimeOffset(2024, 6, 14, 23, 0, 0, 0, TimeSpan.Zero), prev);
+        prev.Should().Be(new DateTimeOffset(2024, 6, 14, 23, 0, 0, 0, ZeroOffset));
     }
 
     #endregion
@@ -90,7 +92,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var end = dto.ToEndOfHour();
         var expected = new DateTimeOffset(2024, 6, 15, 15, 0, 0, 0, TimeSpan.Zero).AddTicks(-1);
-        Assert.Equal(expected, end);
+        end.Should().Be(expected);
     }
 
     [Test]
@@ -98,11 +100,11 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero);
         var end = dto.ToEndOfHour();
-        Assert.Equal(14, end.Hour);
-        Assert.Equal(59, end.Minute);
-        Assert.Equal(59, end.Second);
-        Assert.Equal(999, end.Millisecond);
-        Assert.Equal(TimeSpan.Zero, end.Offset);
+        end.Hour.Should().Be(14);
+        end.Minute.Should().Be(59);
+        end.Second.Should().Be(59);
+        end.Millisecond.Should().Be(999);
+        end.Offset.Should().Be(ZeroOffset);
     }
 
     #endregion
@@ -115,7 +117,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var endNext = dto.ToEndOfNextHour();
         var expected = new DateTimeOffset(2024, 6, 15, 16, 0, 0, 0, TimeSpan.Zero).AddTicks(-1);
-        Assert.Equal(expected, endNext);
+        endNext.Should().Be(expected);
     }
 
     [Test]
@@ -123,9 +125,9 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 14, 59, 59, 999, TimeSpan.Zero).AddTicks(9999);
         var endNext = dto.ToEndOfNextHour();
-        Assert.Equal(15, endNext.Hour);
-        Assert.Equal(59, endNext.Minute);
-        Assert.Equal(59, endNext.Second);
+        endNext.Hour.Should().Be(15);
+        endNext.Minute.Should().Be(59);
+        endNext.Second.Should().Be(59);
     }
 
     [Test]
@@ -134,7 +136,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var endPrev = dto.ToEndOfPreviousHour();
         var expected = new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero).AddTicks(-1);
-        Assert.Equal(expected, endPrev);
+        endPrev.Should().Be(expected);
     }
 
     [Test]
@@ -142,12 +144,12 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, 0, TimeSpan.Zero);
         var endPrev = dto.ToEndOfPreviousHour();
-        Assert.Equal(2024, endPrev.Year);
-        Assert.Equal(6, endPrev.Month);
-        Assert.Equal(14, endPrev.Day);
-        Assert.Equal(23, endPrev.Hour);
-        Assert.Equal(59, endPrev.Minute);
-        Assert.Equal(59, endPrev.Second);
+        endPrev.Year.Should().Be(2024);
+        endPrev.Month.Should().Be(6);
+        endPrev.Day.Should().Be(14);
+        endPrev.Hour.Should().Be(23);
+        endPrev.Minute.Should().Be(59);
+        endPrev.Second.Should().Be(59);
     }
 
     #endregion
@@ -159,10 +161,10 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var dto = new DateTimeOffset(2024, 6, 15, 15, 5, 0, 0, TimeSpan.Zero);
         var formatted = dto.ToHourFormat();
-        Assert.NotNull(formatted);
-        Assert.NotEmpty(formatted);
+        formatted.Should().NotBeNull();
+        formatted.Should().NotBeEmpty();
         // Format is "h:mm tt" (e.g. "3:05 PM") - culture dependent
-        Assert.Contains(":", formatted);
+        formatted.Should().Contain(":");
     }
 
     [Test]
@@ -170,8 +172,8 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var noon = new DateTimeOffset(2024, 6, 15, 12, 0, 0, 0, TimeSpan.Zero);
         var midnight = new DateTimeOffset(2024, 6, 15, 0, 0, 0, 0, TimeSpan.Zero);
-        Assert.NotEmpty(noon.ToHourFormat());
-        Assert.NotEmpty(midnight.ToHourFormat());
+        noon.ToHourFormat().Should().NotBeEmpty();
+        midnight.ToHourFormat().Should().NotBeEmpty();
     }
 
     #endregion
@@ -183,8 +185,8 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 17, 5, 0, 0, TimeSpan.Zero); // 5:05 PM UTC
         var s = utc.ToTzHourFormat(TimeZoneInfo.Utc);
-        Assert.NotNull(s);
-        Assert.Contains(":", s);
+        s.Should().NotBeNull();
+        s.Should().Contain(":");
     }
 
     [Test]
@@ -199,9 +201,9 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 17, 30, 0, 0, TimeSpan.Zero);
         var s = utc.ToTzHourFormatWithTrim(TimeZoneInfo.Utc);
-        Assert.NotNull(s);
+        s.Should().NotBeNull();
         // Should be on the hour in that zone
-        Assert.Contains(":", s);
+        s.Should().Contain(":");
     }
 
     [Test]
@@ -220,7 +222,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero);
         int hour = utc.ToTzHoursFromUtc(14, TimeZoneInfo.Utc);
-        Assert.Equal(14, hour);
+        hour.Should().Be(14);
     }
 
     [Test]
@@ -229,17 +231,17 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         // UTC date 2024-06-15, hour 23 -> in Eastern might be next local day
         var utc = new DateTimeOffset(2024, 6, 15, 12, 0, 0, 0, TimeSpan.Zero);
         int hour = utc.ToTzHoursFromUtc(23, Eastern);
-        Assert.InRange(hour, 0, 23);
+        hour.Should().BeInRange(0, 23);
         // 23 UTC = 19 Eastern (EDT -4), so we expect 19
-        Assert.Equal(19, hour);
+        hour.Should().Be(19);
     }
 
     [Test]
     public void ToTzHoursFromUtc_hour_0_and_23_valid()
     {
         var utc = new DateTimeOffset(2024, 6, 15, 12, 0, 0, 0, TimeSpan.Zero);
-        Assert.Equal(0, utc.ToTzHoursFromUtc(0, TimeZoneInfo.Utc));
-        Assert.Equal(23, utc.ToTzHoursFromUtc(23, TimeZoneInfo.Utc));
+        utc.ToTzHoursFromUtc(0, TimeZoneInfo.Utc).Should().Be(0);
+        utc.ToTzHoursFromUtc(23, TimeZoneInfo.Utc).Should().Be(23);
     }
 
     [Test]
@@ -272,8 +274,8 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 12, 0, 0, 0, TimeSpan.Zero);
         var s = utc.ToTzHourFormatFromUtc(14, TimeZoneInfo.Utc);
-        Assert.NotNull(s);
-        Assert.Contains(":", s);
+        s.Should().NotBeNull();
+        s.Should().Contain(":");
     }
 
     [Test]
@@ -300,7 +302,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 14, 0, 0, 0, TimeSpan.Zero);
         int hour = utc.ToUtcHoursFromTz(14, TimeZoneInfo.Utc);
-        Assert.Equal(14, hour);
+        hour.Should().Be(14);
     }
 
     [Test]
@@ -308,9 +310,9 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var utc = new DateTimeOffset(2024, 6, 15, 18, 0, 0, 0, TimeSpan.Zero); // 2 PM Eastern
         int hour = utc.ToUtcHoursFromTz(14, Eastern);
-        Assert.InRange(hour, 0, 23);
+        hour.Should().BeInRange(0, 23);
         // 2 PM Eastern on that date (EDT) = 18 UTC
-        Assert.Equal(18, hour);
+        hour.Should().Be(18);
     }
 
     [Test]
@@ -338,7 +340,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var utcOnThatDay = new DateTimeOffset(2024, 3, 10, 12, 0, 0, 0, TimeSpan.Zero);
         int utcHour = utcOnThatDay.ToUtcHoursFromTz(2, Eastern);
         // 2 AM is invalid; code advances to 3 AM EDT = 7 UTC
-        Assert.Equal(7, utcHour);
+        utcHour.Should().Be(7);
     }
 
     /// <summary>
@@ -351,15 +353,15 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var utcOnThatDay = new DateTimeOffset(2024, 11, 3, 12, 0, 0, 0, TimeSpan.Zero);
         int utcHour = utcOnThatDay.ToUtcHoursFromTz(1, Eastern);
         // Earlier UTC = first occurrence = 1 AM EDT = 5 UTC
-        Assert.Equal(5, utcHour);
+        utcHour.Should().Be(5);
     }
 
     [Test]
     public void ToUtcHoursFromTz_hour_0_and_23_valid()
     {
         var utc = new DateTimeOffset(2024, 6, 15, 12, 0, 0, 0, TimeSpan.Zero);
-        Assert.Equal(0, utc.ToUtcHoursFromTz(0, TimeZoneInfo.Utc));
-        Assert.Equal(23, utc.ToUtcHoursFromTz(23, TimeZoneInfo.Utc));
+        utc.ToUtcHoursFromTz(0, TimeZoneInfo.Utc).Should().Be(0);
+        utc.ToUtcHoursFromTz(23, TimeZoneInfo.Utc).Should().Be(23);
     }
 
     #endregion
@@ -371,12 +373,12 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
     {
         var offset = TimeSpan.FromHours(5).Add(TimeSpan.FromMinutes(30));
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, offset);
-        Assert.Equal(offset, dto.ToStartOfHour().Offset);
-        Assert.Equal(offset, dto.ToEndOfHour().Offset);
-        Assert.Equal(offset, dto.ToStartOfNextHour().Offset);
-        Assert.Equal(offset, dto.ToStartOfPreviousHour().Offset);
-        Assert.Equal(offset, dto.ToEndOfNextHour().Offset);
-        Assert.Equal(offset, dto.ToEndOfPreviousHour().Offset);
+        dto.ToStartOfHour().Offset.Should().Be(offset);
+        dto.ToEndOfHour().Offset.Should().Be(offset);
+        dto.ToStartOfNextHour().Offset.Should().Be(offset);
+        dto.ToStartOfPreviousHour().Offset.Should().Be(offset);
+        dto.ToEndOfNextHour().Offset.Should().Be(offset);
+        dto.ToEndOfPreviousHour().Offset.Should().Be(offset);
     }
 
     [Test]
@@ -385,7 +387,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var startNext = dto.ToStartOfNextHour();
         var endNext = dto.ToEndOfNextHour();
-        Assert.Equal(startNext.AddHours(1).AddTicks(-1), endNext);
+        endNext.Should().Be(startNext.AddHours(1).AddTicks(-1));
     }
 
     [Test]
@@ -394,7 +396,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 0, 0, TimeSpan.Zero);
         var startPrev = dto.ToStartOfPreviousHour();
         var endPrev = dto.ToEndOfPreviousHour();
-        Assert.Equal(startPrev.AddHours(1).AddTicks(-1), endPrev);
+        endPrev.Should().Be(startPrev.AddHours(1).AddTicks(-1));
     }
 
     [Test]
@@ -403,10 +405,10 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         // Local 2024-06-15 00:30 UTC-4 => UTC 2024-06-15 04:30
         var withOffset = new DateTimeOffset(2024, 6, 15, 0, 30, 0, 0, TimeSpan.FromHours(-4));
         int tzHour = withOffset.ToTzHoursFromUtc(0, TimeZoneInfo.Utc);
-        Assert.Equal(0, tzHour);
+        tzHour.Should().Be(0);
         // Date used is UTC date (year/month/day of 2024-06-15 04:30 UTC = 2024-06-15)
         int utcBack = withOffset.ToUtcHoursFromTz(0, TimeZoneInfo.Utc);
-        Assert.Equal(0, utcBack);
+        utcBack.Should().Be(0);
     }
 
     [Test]
@@ -418,7 +420,7 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         {
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             string formatted = dto.ToHourFormat();
-            Assert.Equal("3:05 PM", formatted);
+            formatted.Should().Be("3:05 PM");
         }
         finally
         {
