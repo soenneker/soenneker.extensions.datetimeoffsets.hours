@@ -4,7 +4,8 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.extensions.datetimeoffsets.hours/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.extensions.datetimeoffsets.hours/actions/workflows/codeql.yml)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Extensions.DateTimeOffsets.Hours
-A collection of helpful DateTimeOffset hour extension methods.
+
+Provides fixed-offset hour boundaries, local-hour formatting, and hour-of-day conversion between UTC and named time zones.
 
 ## Installation
 
@@ -12,26 +13,61 @@ A collection of helpful DateTimeOffset hour extension methods.
 dotnet add package Soenneker.Extensions.DateTimeOffsets.Hours
 ```
 
-## Quick start
+## Hour boundaries
 
 ```csharp
 using Soenneker.Extensions.DateTimeOffsets.Hours;
 
-DateTimeOffset dateTimeOffset = DateTimeOffset.UtcNow;
-var result = dateTimeOffset.ToStartOfHour();
+DateTimeOffset value = new(2026, 8, 29, 16, 42, 30, TimeSpan.FromHours(-4));
+
+DateTimeOffset start = value.ToStartOfHour();
+DateTimeOffset end = value.ToEndOfHour();
+DateTimeOffset previousStart = value.ToStartOfPreviousHour();
+DateTimeOffset nextEnd = value.ToEndOfNextHour();
 ```
 
-## Common operations
+| Method | Result for `16:42:30` |
+| --- | --- |
+| `ToStartOfHour()` | `16:00:00` |
+| `ToEndOfHour()` | One tick before `17:00:00` |
+| `ToStartOfPreviousHour()` | `15:00:00` |
+| `ToEndOfPreviousHour()` | One tick before `16:00:00` |
+| `ToStartOfNextHour()` | `17:00:00` |
+| `ToEndOfNextHour()` | One tick before `18:00:00` |
 
-- `ToStartOfHour()` - Returns the start of the hour containing `dateTimeOffset` (minute/second/fraction set to zero).
-- `ToStartOfNextHour()` - Returns the start of the next hour relative to `dateTimeOffset`.
-- `ToStartOfPreviousHour()` - Returns the start of the previous hour relative to `dateTimeOffset`.
-- `ToEndOfHour()` - Returns the end of the hour containing `dateTimeOffset` (one tick before the next hour).
-- `ToEndOfNextHour()` - Returns the end of the next hour relative to `dateTimeOffset`.
-- `ToEndOfPreviousHour()` - Returns the end of the previous hour relative to `dateTimeOffset`.
-- `ToTzHourFormat()` - Converts `instant` to `tz` and formats the local wall-clock time as `"h:mm tt"` using the current culture. Returns a culture-formatted local time string such as `"3:05 PM"`.
-- `ToTzHourFormatWithTrim()` - Converts `instant` to `tz`, trims to the start of the local hour, and formats the result as `"h:mm tt"` using the current culture.
-- `ToHourFormat()` - Formats `dateTimeOffset` as `"h:mm tt"` using the current culture. Returns a culture-formatted time string such as `"3:05 PM"`.
-- `ToTzHoursFromUtc()` - Converts a UTC hour-of-day to the corresponding local hour-of-day in `tz`, anchored to the UTC date of `utcInstant`. Returns the local hour-of-day [0.23] for the instant represented by (UTC date from `utcInstant`, `utcHour`). This method intentionally anchors on the UTC date, not the target time zone's local date.
-- `ToTzHourFormatFromUtc()` - Formats a UTC hour-of-day as a local time string in `tz`, anchored to the UTC date of `utcInstant`. Returns a culture-formatted local time string such as `"3:00 PM"`. This computes the target local wall-clock time by converting the UTC instant (UTC date + `utcHour`) into `tz`.
-- `ToUtcHoursFromTz()` - Converts a local hour-of-day in `tz` to the corresponding UTC hour-of-day, anchored to the local DATE in `tz` that contains `utcInstant`. Returns the UTC hour-of-day [0.23] corresponding to the requested local wall time on the selected local date, using zone rules.
+These methods preserve the stored offset and use fixed elapsed hours. They do not consult a named time zone or reinterpret repeated/skipped local clock hours.
+
+## Format an hour
+
+```csharp
+string storedClock = value.ToHourFormat();
+
+TimeZoneInfo eastern = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+string easternClock = value.ToTzHourFormat(eastern);
+string easternHour = value.ToTzHourFormatWithTrim(eastern);
+```
+
+All three methods use `h:mm tt` with the current culture. `ToHourFormat()` formats the stored clock fields. `ToTzHourFormat()` first converts the instant to the target zone. `ToTzHourFormatWithTrim()` also resets local minutes and seconds to zero.
+
+## Convert a UTC hour to local time
+
+```csharp
+DateTimeOffset reference = new(2026, 8, 29, 12, 0, 0, TimeSpan.Zero);
+
+int localHour = reference.ToTzHoursFromUtc(utcHour: 18, eastern);
+string localClock = reference.ToTzHourFormatFromUtc(utcHour: 18, eastern);
+```
+
+Both methods combine `utcHour` with the UTC date of `reference`, then convert that instant to the target zone. The integer method returns only `0–23`; it discards the local date and minutes. The formatted method preserves fractional-hour offsets such as `5:30 AM`.
+
+## Convert a local hour to UTC
+
+```csharp
+int utcHour = reference.ToUtcHoursFromTz(tzHour: 9, eastern);
+```
+
+`ToUtcHoursFromTz()` chooses the local date in `eastern` that contains `reference`, interprets `tzHour` on that date, and returns only the UTC hour from `0` through `23`.
+
+If the local wall time is invalid, it advances minute-by-minute to the first valid minute. If it is ambiguous, it selects the earlier UTC instant. The returned integer does not include UTC date rollover or minutes; use a full-instant API when those details matter.
+
+Hour arguments must be from `0` through `23`.

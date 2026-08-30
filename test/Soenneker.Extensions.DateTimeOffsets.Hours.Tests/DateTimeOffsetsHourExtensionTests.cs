@@ -343,6 +343,22 @@ public sealed class DateTimeOffsetsHourExtensionTests : UnitTest
         utcHour.Should().Be(7);
     }
 
+    [Test]
+    public void ToUtcHoursFromTz_non_hour_gap_uses_first_valid_minute()
+    {
+        TimeZoneInfo.TransitionTime start = TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 0, 30, 0), 6, 1);
+        TimeZoneInfo.TransitionTime end = TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 0, 30, 0), 10, 1);
+        TimeZoneInfo.AdjustmentRule rule = TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(
+            new DateTime(2024, 1, 1), new DateTime(2024, 12, 31), TimeSpan.FromMinutes(45), start, end);
+        TimeZoneInfo zone = TimeZoneInfo.CreateCustomTimeZone(
+            "FortyFiveMinuteGap", TimeSpan.Zero, "Forty-five-minute gap", "Standard", "Daylight", [rule]);
+        var reference = new DateTimeOffset(2024, 6, 1, 6, 0, 0, TimeSpan.Zero);
+
+        int result = reference.ToUtcHoursFromTz(1, zone);
+
+        result.Should().Be(0);
+    }
+
     /// <summary>
     /// When DST falls back, 1:00 AM local occurs twice. Method should choose earlier UTC (larger offset = EDT).
     /// </summary>

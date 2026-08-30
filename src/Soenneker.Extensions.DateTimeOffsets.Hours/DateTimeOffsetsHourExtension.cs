@@ -275,17 +275,8 @@ public static class DateTimeOffsetsHourExtension
         // Build the requested local wall-clock hour on that local date (Unspecified = "wall time in tz").
         DateTime localWall = new(localNow.Year, localNow.Month, localNow.Day, tzHour, 0, 0, DateTimeKind.Unspecified);
 
-        // Handle spring-forward gaps (invalid local times) by advancing to the first valid minute.
-        // This is typically at most 60 iterations; still, it's only used on the rare DST-transition dates.
-        if (tz.IsInvalidTime(localWall))
-        {
-            // Fast path: jump by hours first (common gap is 1 hour), then fall back to minutes if still invalid.
-            // Keeps correctness for zones with non-1h gaps.
-            localWall = localWall.AddHours(1);
-
-            while (tz.IsInvalidTime(localWall))
-                localWall = localWall.AddMinutes(1);
-        }
+        while (tz.IsInvalidTime(localWall))
+            localWall = localWall.AddMinutes(1);
 
         // Handle fall-back folds (ambiguous local times) by choosing the earlier UTC instant (larger offset).
         if (tz.IsAmbiguousTime(localWall))
