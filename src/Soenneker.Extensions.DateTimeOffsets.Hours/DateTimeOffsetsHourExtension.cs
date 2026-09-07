@@ -187,8 +187,7 @@ public static class DateTimeOffsetsHourExtension
         if (tz is null)
             throw new ArgumentNullException(nameof(tz));
 
-        DateTimeOffset utc = utcInstant.ToUniversalTime();
-        DateTime utcDateTime = new(utc.Year, utc.Month, utc.Day, utcHour, 0, 0, DateTimeKind.Utc);
+        DateTime utcDateTime = utcInstant.UtcDateTime.Date.AddHours(utcHour);
 
         DateTime local = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, tz);
         return local.Hour;
@@ -219,8 +218,7 @@ public static class DateTimeOffsetsHourExtension
         if (tz is null)
             throw new ArgumentNullException(nameof(tz));
 
-        DateTimeOffset utc = utcInstant.ToUniversalTime();
-        DateTime utcDateTime = new(utc.Year, utc.Month, utc.Day, utcHour, 0, 0, DateTimeKind.Utc);
+        DateTime utcDateTime = utcInstant.UtcDateTime.Date.AddHours(utcHour);
 
         DateTime local = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, tz);
 
@@ -273,7 +271,7 @@ public static class DateTimeOffsetsHourExtension
         DateTimeOffset localNow = TimeZoneInfo.ConvertTime(utc, tz);
 
         // Build the requested local wall-clock hour on that local date (Unspecified = "wall time in tz").
-        DateTime localWall = new(localNow.Year, localNow.Month, localNow.Day, tzHour, 0, 0, DateTimeKind.Unspecified);
+        DateTime localWall = localNow.Date.AddHours(tzHour);
 
         while (tz.IsInvalidTime(localWall))
             localWall = localWall.AddMinutes(1);
